@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class SmsToken extends Model
 {
-    const EXPIRE_TIEM= 1;
+    const EXPIRE_TIME = 1;
 
     protected $fillable = [
         'code',
@@ -30,7 +31,7 @@ class SmsToken extends Model
      */
     public function generateCode()
     {
-        $min = pow(10, 4);
+        $min = pow(10, 3);
         $max = $min * 10 - 1;
         $code = mt_rand($min, $max);
 
@@ -49,7 +50,13 @@ class SmsToken extends Model
      */
     public function isValid()
     {
-        return ! $this->isUsed() && ! $this->isExpired();
+        if ($this->isUsed()) {
+            return ['valid'=>false, 'message'=>'Код уже использован'];
+        }
+        if ($this->isExpired()){
+            return ['valid'=>false, 'message'=>'Код уже недействителен'];
+        }
+        return ['valid'=>true];
     }
 
     public function isUsed() 
@@ -64,7 +71,7 @@ class SmsToken extends Model
      */
     public function isExpired()
     {
-        return $this->created_at->diffInMinutes(Carbon::now()) > static::EXPIRATION_TIME;
+        return $this->created_at->diffInMinutes(Carbon::now()) > static::EXPIRE_TIME;
     }
 
 }
