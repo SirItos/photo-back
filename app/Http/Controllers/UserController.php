@@ -40,6 +40,9 @@ class UserController extends Controller
         $user = Models\User::firstOrCreate([
             'phone'=>$request->phone
         ]);
+        if ($user->password_set) {
+            return response('Пользователь с таким номером телефона уже существует.',471);
+        }
 
         return response([
             'user_id'=>$user->id,
@@ -116,8 +119,23 @@ class UserController extends Controller
 
     protected function setPin(Request $request)
     {
-        Models\User::find(Auth::user()->id)->update(['password'=>$request->pass]);
+        Models\User::find(Auth::user()->id)
+                   ->update([
+                       'password'=>$request->pass,
+                       'password_set'=>1
+                   ]);
         return response('new password set',200);
     }
+
+    protected function getUserParams(Request $request)
+    {
+        $user = Auth::user();
+        $result = [];
+        forEach($request->params as $param) {
+            $result[$param] = $user[$param];
+        }
+        return $result;
+    }
+
  
 }

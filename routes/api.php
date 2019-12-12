@@ -11,4 +11,5 @@ Route::post('ask-code','SmsTokenController@newCode');
 
 Route::middleware('auth:api')->group(function () {
   Route::post('set-pin','UserController@setPin');
+  Route::post('user-params','UserController@getUserParams');
 });
