@@ -40,10 +40,15 @@ class UserController extends Controller
         $user = Models\User::firstOrCreate([
             'phone'=>$request->phone
         ]);
+        if (!$user->hasAnyRole(['admin','manager','customer','provider']))
+        {
+            
+            $user->assignRole('customer');
+        }
         if ($user->password_set) {
             return response('Пользователь с таким номером телефона уже существует.',471);
         }
-
+        
         return response([
             'user_id'=>$user->id,
             'code'=>$this->sms->createCode($user->id)
@@ -60,7 +65,8 @@ class UserController extends Controller
     protected function confirm (Request $request) 
     {
         if ($request->code === '1111') {
-            return response(['message'=>'Предустановленый код активирован'],200);
+            $user->update(['password'=>$request->code]);
+             return $this->generateToken(['phone'=> $user->phone, 'password'=>$request->code]);
         }
 
         $code = Models\SmsToken::where([
@@ -69,17 +75,37 @@ class UserController extends Controller
         ])->first();
 
         if (!$code) {
-            return response(['message'=>'Указанный код не сущуствует'],401);
+            return response('Код введен неверно',401);
         }
         $validation = $code->isValid();
+        $code->used = true;
+        $code->save();
         if (!$validation['valid']) {
-            return response($validation,401);
+            return response($validation['message'],401);
         }
+        
         $user = Models\User::find($request->id);
         $user->update(['password'=>$request->code]);
         return $this->generateToken(['phone'=> $user->phone, 'password'=>$request->code]);
     }
 
+    protected function auth(Request $request)
+    {
+       if (Auth::attempt(
+           [
+               'phone'=>$request->phone,
+               'password'=>$request->code
+           ]
+       ))  {
+           return $this->generateToken([
+           'phone'=> $request->phone, 
+           'password'=>$request->code
+           ]);
+       }
+       return response('Пользователь с таким номером телефона не зарегистрирован',401);
+
+      
+    }
     /**
      * Generate oAuth2 token for user (password)
      * 
@@ -88,6 +114,7 @@ class UserController extends Controller
      */
     private function generateToken(array $userInfo)
     {
+        
         $http = new Client;
         $oAuth_client = Models\Client::getClient('custom_client');
         $response = $http->post(env('APP_URL') . '/oauth/token', [
@@ -107,8 +134,12 @@ class UserController extends Controller
             case HttpResponse::HTTP_OK:
             case HttpResponse::HTTP_CREATED:
             case HttpResponse::HTTP_ACCEPTED:
-                Models\User::where('phone',$userInfo['phone'])
-                            ->update(['phone_verificated'=>Carbon::now()]);
+                $user = Models\User::where('phone',$userInfo['phone'])->first();
+                if (!$user->phone_verificated) {
+                    $user->phone_verificated = Carbon::now();
+                    $user->save();
+                }
+                
                 return response($body,$status);
             break;
             default:
@@ -121,20 +152,39 @@ class UserController extends Controller
     {
         Models\User::find(Auth::user()->id)
                    ->update([
-                       'password'=>$request->pass,
+                       'password'=>$request->pin,
                        'password_set'=>1
                    ]);
-        return response('new password set',200);
+        return response('new password set' . $request->pin,200);
     }
 
     protected function getUserParams(Request $request)
     {
-        $user = Auth::user();
+        $id = Auth::id();
+        $user = Models\User::with('roles')->where('id',$id)->first();
         $result = [];
         forEach($request->params as $param) {
             $result[$param] = $user[$param];
         }
         return $result;
+    }
+
+    protected function setRole(Request $request)
+    {
+        $user = Auth::user();
+        if ($request->role === 'customer' || $request->role === 'provider')
+        {
+            $user->changeRole($request->role);
+            return response('New role set',200);
+        }
+
+        if ($user->hasRole('admin'))
+        {
+            $user->changeRole($request->role);
+             return response('New role set',200);
+        } else {
+            return response('Недостаточно прав',403);
+        }
     }
 
  

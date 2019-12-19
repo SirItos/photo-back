@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use Notifiable, HasApiTokens;
+    use Notifiable, HasApiTokens, HasRoles;
 
     protected  $guard_name = "api";
 
@@ -28,6 +29,16 @@ class User extends Authenticatable
     ];
 
     /**
+     * Change user role
+     * 
+     * @param string $role
+     * @return void
+     */
+    public function changeRole($role)
+    {
+        $this->syncRoles($role);
+    }
+    /**
      * Set the user's password (encrypted)
      * 
      * @param string $value
@@ -35,13 +46,13 @@ class User extends Authenticatable
      */
     public function setPasswordAttribute($value)
     {
-       $this->attributes['password'] = bcrypt($value) ;
+       $this->attributes['password'] = bcrypt($value);
     }     
     public function smsTokens()
     {
         return $this->hasMany(SmsToken::class);
     }
-
+    
     public function findForPassport($phone) {
         return $this->where('phone',$phone)->first();
     }

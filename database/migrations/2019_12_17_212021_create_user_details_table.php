@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateSmsTokensTable extends Migration
+class CreateUserDetailsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,12 @@ class CreateSmsTokensTable extends Migration
      */
     public function up()
     {
-        Schema::create('sms_tokens', function (Blueprint $table) {
+        Schema::create('user_details', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->string('code',4);
-            $table->boolean('used')->default(false);
+            $table->string('name')->nullable();
+            $table->string('email')->nullable();
             $table->timestamps();
         });
     }
@@ -30,6 +30,6 @@ class CreateSmsTokensTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('sms_tokens');
+        Schema::dropIfExists('user_details');
     }
 }
