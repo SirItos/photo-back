@@ -52,6 +52,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(SmsToken::class);
     }
+
+    public function userDetails() 
+    {
+        return $this->hasOne(UserDetails::class);
+    }
     
     public function findForPassport($phone) {
         return $this->where('phone',$phone)->first();

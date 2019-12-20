@@ -155,13 +155,31 @@ class UserController extends Controller
                        'password'=>$request->pin,
                        'password_set'=>1
                    ]);
-        return response('new password set' . $request->pin,200);
+        $roles = Auth::user()->roles;            
+        return response(["message"=>'new password set' . $request->pin, "roles"=>$roles[0]->name],200);
+    }
+
+    /**
+     * Установка параметров пользователя
+     * 
+     * @return string
+     */
+    protected function setUserParams(Request $request)
+    {
+        $id = Auth::id();
+        $updParams = [];
+        forEach($request->params as $param) {
+            $updParams[$param['field']] = $param['value'] ;
+        }
+        Models\UserDetails::updateOrCreate(['user_id'=>$id],$updParams);
+
+        return response('Data is update. user id ' . $id,200);
     }
 
     protected function getUserParams(Request $request)
     {
         $id = Auth::id();
-        $user = Models\User::with('roles')->where('id',$id)->first();
+        $user = Models\User::with('roles','userDetails')->where('id',$id)->first();
         $result = [];
         forEach($request->params as $param) {
             $result[$param] = $user[$param];

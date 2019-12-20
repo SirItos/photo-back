@@ -15,4 +15,5 @@ Route::middleware('auth:api')->group(function () {
   Route::post('set-pin','UserController@setPin');
   Route::post('user-params','UserController@getUserParams');
   Route::post('set-role','UserController@setRole');
+  Route::post('set-user-details','UserController@setUserParams');
 });
