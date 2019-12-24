@@ -16,4 +16,5 @@ Route::middleware('auth:api')->group(function () {
   Route::post('user-params','UserController@getUserParams');
   Route::post('set-role','UserController@setRole');
   Route::post('set-user-details','UserController@setUserParams');
+  Route::post('set-resource-params','ResourceController@setResourceParams');
 });

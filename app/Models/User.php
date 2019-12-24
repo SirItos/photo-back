@@ -58,6 +58,11 @@ class User extends Authenticatable
         return $this->hasOne(UserDetails::class);
     }
     
+    public function resource()
+    {
+        return $this->hasOne(Resource::class);
+    }
+    
     public function findForPassport($phone) {
         return $this->where('phone',$phone)->first();
     }

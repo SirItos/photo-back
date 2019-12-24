@@ -63,7 +63,8 @@ class UserController extends Controller
      * @return response
      */
     protected function confirm (Request $request) 
-    {
+    {     
+        $user = Models\User::find($request->id);
         if ($request->code === '1111') {
             $user->update(['password'=>$request->code]);
              return $this->generateToken(['phone'=> $user->phone, 'password'=>$request->code]);
@@ -83,8 +84,7 @@ class UserController extends Controller
         if (!$validation['valid']) {
             return response($validation['message'],401);
         }
-        
-        $user = Models\User::find($request->id);
+      
         $user->update(['password'=>$request->code]);
         return $this->generateToken(['phone'=> $user->phone, 'password'=>$request->code]);
     }
@@ -154,7 +154,8 @@ class UserController extends Controller
                    ->update([
                        'password'=>$request->pin,
                        'password_set'=>1
-                   ]);
+                   ]);         
+        Models\UserDetails::updateOrCreate(['user_id'=>Auth::id()],['display_phone'=>Auth::user()->phone]);
         $roles = Auth::user()->roles;            
         return response(["message"=>'new password set' . $request->pin, "roles"=>$roles[0]->name],200);
     }
@@ -175,6 +176,8 @@ class UserController extends Controller
 
         return response('Data is update. user id ' . $id,200);
     }
+
+ 
 
     protected function getUserParams(Request $request)
     {

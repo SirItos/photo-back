@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateUserDetailsTable extends Migration
+class CreateResourcesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,14 +13,17 @@ class CreateUserDetailsTable extends Migration
      */
     public function up()
     {
-        Schema::create('user_details', function (Blueprint $table) {
+        Schema::create('resources', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->string('name')->nullable();
-            $table->string('display_phone')->nullable();
-            $table->string('email')->nullable();
-            $table->string('age_range')->nullable();
+            $table->string('address')->nullable();
+            $table->decimal('long',10,7)->default(0.0);
+            $table->decimal('lat',10,7)->default(0.0);
+            $table->longText('description')->nullable();
+            $table->boolean('resource_type')->default(0);
+            $table->integer('min_cost')->default(0);
+            $table->integer('max_cost')->default(2);
             $table->timestamps();
         });
     }
@@ -32,6 +35,6 @@ class CreateUserDetailsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('user_details');
+        Schema::dropIfExists('resources');
     }
 }
