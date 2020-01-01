@@ -19,6 +19,7 @@ class CreateUsersTable extends Migration
             $table->string('password')->nullable();
             $table->dateTime('phone_verificated')->nullable();
             $table->boolean('password_set')->default(0);
+            
             // $table->string('verification_code',4)->nullable();
             $table->timestamps();
         });

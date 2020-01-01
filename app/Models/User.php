@@ -63,6 +63,11 @@ class User extends Authenticatable
         return $this->hasOne(Resource::class);
     }
     
+    public function favorite()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
     public function findForPassport($phone) {
         return $this->where('phone',$phone)->first();
     }

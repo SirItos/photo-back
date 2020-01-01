@@ -5,16 +5,22 @@ use Illuminate\Http\Request;
 
 Route::post('registrate-user','UserController@createUser');
 
-Route::post('confirm-phone','UserController@confirm');
+Route::post('confirm-phone','SmsTokenController@confirm');
 
 Route::post('ask-code','SmsTokenController@newCode');
 
-Route::post('auth','UserController@auth');
+Route::post('auth','AuthController@auth');
+
+Route::post('points','ResourceController@pointsInBound');
 
 Route::middleware('auth:api')->group(function () {
   Route::post('set-pin','UserController@setPin');
   Route::post('user-params','UserController@getUserParams');
   Route::post('set-role','UserController@setRole');
   Route::post('set-user-details','UserController@setUserParams');
+
   Route::post('set-resource-params','ResourceController@setResourceParams');
+  Route::post('get-resource-params','ResourceController@getResourceParams');
+  Route::post('geosearch','GeocoderController@Geosearch');
+  
 });

@@ -2,12 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Response as HttpResponse;
 use App\Models;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use GuzzleHttp\Client;  
-use Carbon\Carbon;
 
 
 class UserController extends Controller
@@ -54,100 +51,11 @@ class UserController extends Controller
             'code'=>$this->sms->createCode($user->id)
         ]);
  
-    }
-
+    }  
+   
     /**
-     * Confirm user phone
-     * 
-     * @param request
-     * @return response
+     * Set user pin for auth
      */
-    protected function confirm (Request $request) 
-    {     
-        $user = Models\User::find($request->id);
-        if ($request->code === '1111') {
-            $user->update(['password'=>$request->code]);
-             return $this->generateToken(['phone'=> $user->phone, 'password'=>$request->code]);
-        }
-
-        $code = Models\SmsToken::where([
-            ['user_id',$request->id],
-            ['code', $request->code]
-        ])->first();
-
-        if (!$code) {
-            return response('Код введен неверно',401);
-        }
-        $validation = $code->isValid();
-        $code->used = true;
-        $code->save();
-        if (!$validation['valid']) {
-            return response($validation['message'],401);
-        }
-      
-        $user->update(['password'=>$request->code]);
-        return $this->generateToken(['phone'=> $user->phone, 'password'=>$request->code]);
-    }
-
-    protected function auth(Request $request)
-    {
-       if (Auth::attempt(
-           [
-               'phone'=>$request->phone,
-               'password'=>$request->code
-           ]
-       ))  {
-           return $this->generateToken([
-           'phone'=> $request->phone, 
-           'password'=>$request->code
-           ]);
-       }
-       return response('Пользователь с таким номером телефона не зарегистрирован',401);
-
-      
-    }
-    /**
-     * Generate oAuth2 token for user (password)
-     * 
-     * @param array $userInfo
-     * @return mixed
-     */
-    private function generateToken(array $userInfo)
-    {
-        
-        $http = new Client;
-        $oAuth_client = Models\Client::getClient('custom_client');
-        $response = $http->post(env('APP_URL') . '/oauth/token', [
-            'form_params' => [
-                'grant_type' => 'password',
-                'client_id' => $oAuth_client->id,
-                'client_secret' => $oAuth_client->secret,
-                'username' => $userInfo['phone'],
-                'password' => $userInfo['password'],
-                'scope' => '*'
-            ]
-        ]);
-        $body = $response->getBody();
-
-        $status = $response->getStatusCode();
-        switch ($status) {
-            case HttpResponse::HTTP_OK:
-            case HttpResponse::HTTP_CREATED:
-            case HttpResponse::HTTP_ACCEPTED:
-                $user = Models\User::where('phone',$userInfo['phone'])->first();
-                if (!$user->phone_verificated) {
-                    $user->phone_verificated = Carbon::now();
-                    $user->save();
-                }
-                
-                return response($body,$status);
-            break;
-            default:
-                return response('error',401);
-            break;
-        }
-    }
-
     protected function setPin(Request $request)
     {
         Models\User::find(Auth::user()->id)
@@ -177,12 +85,11 @@ class UserController extends Controller
         return response('Data is update. user id ' . $id,200);
     }
 
- 
 
     protected function getUserParams(Request $request)
     {
         $id = Auth::id();
-        $user = Models\User::with('roles','userDetails')->where('id',$id)->first();
+        $user = Models\User::with('roles','userDetails','resource')->where('id',$id)->first();
         $result = [];
         forEach($request->params as $param) {
             $result[$param] = $user[$param];
