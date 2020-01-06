@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Resource extends Model
 {
     protected $fillable = [
-        'user_id','address','long','lat','description','resource_type','min_cost','max_cost', 'online','activated'
+        'user_id','address','title','long','lat','description','resource_type','min_cost','max_cost', 'online','activated'
     ];
 
     protected $appends = ['images'];
@@ -19,12 +19,14 @@ class Resource extends Model
 
     public function favorite()
     {
-        return $this->belongsTo(Favorite::class);
+        return $this->hasOne(Favorite::class);
     }
 
     public function getImagesAttribute() 
     {
         return [];
     }
+
+
 
 }

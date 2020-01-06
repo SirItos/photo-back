@@ -17,9 +17,9 @@ class Favorite extends Model
         return storage_path();
     }
 
-    public function resoutce()
+    public function resource()
     {
-        return $this->hasOne(Resource::class);
+        return $this->belongsTo(Resource::class);
     }
 
 }

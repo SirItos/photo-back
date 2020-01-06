@@ -18,8 +18,9 @@ class CreateResourcesTable extends Migration
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->string('address')->nullable();
-            $table->decimal('long',10,7)->default(0.0);
+            $table->decimal('long',10,7)->default(0.0); 
             $table->decimal('lat',10,7)->default(0.0);
+            $table->string('title')->nullable();
             $table->longText('description')->nullable();
             $table->boolean('resource_type')->default(0);
             $table->integer('min_cost')->default(0);
