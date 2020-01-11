@@ -31,7 +31,7 @@ class ResourceController extends Controller
     {
         $query =  Resource::where('id',$request->id);
         if ($request->all) {
-            return $query->with('user:id,phone','favorite:id,resource_id')->first();
+            return $query->with('user:id,phone','favorite:id,resource_id','images:id,resource_id,url')->first();
         }
         return $query->first($request->params);
      

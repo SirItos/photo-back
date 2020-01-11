@@ -89,7 +89,7 @@ class UserController extends Controller
     protected function getUserParams(Request $request)
     {
         $id = Auth::id();
-        $user = Models\User::with('roles','userDetails','resource')->where('id',$id)->first();
+        $user = Models\User::with('roles','userDetails','resource','resource.images')->where('id',$id)->first();
         $result = [];
         forEach($request->params as $param) {
             $result[$param] = $user[$param];

@@ -21,16 +21,18 @@ class GeocoderController extends Controller
     
     protected function Geosearch(Request $request)
     {
-        
+        $query = [
+             'apikey'=>env('API_KEY'),
+             'geocode'=>$request->val,
+             'spn'=>'3.552069,2.400552',
+             'lang'=>'ru_RU',
+             'format'=>'json'
+        ];
+        if ($request->ll) {
+            $query['ll']= $request->ll['lng'] . ',' .$request->ll['lat'];
+        }
         $response = $this->http->request('GET','1.x/',[
-            'query'=>[
-                'apikey'=>env('API_KEY'),
-                'geocode'=>$request->val,
-                'll'=>$request->ll['lng'] . ',' .$request->ll['lat'],
-                'spn'=>'3.552069,2.400552',
-                'lang'=>'ru_RU',
-                'format'=>'json'
-            ]
+            'query'=>$query
         ]);
         return response($response->getBody(),$response->getStatusCode());
     }

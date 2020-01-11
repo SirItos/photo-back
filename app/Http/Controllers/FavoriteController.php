@@ -25,6 +25,7 @@ class FavoriteController extends Controller
 
    protected function getFavorite()
    {
-       return Favorite::where('user_id',Auth::id())->get();
+    //    ,'resource.images:id,resource_id,url'
+       return Favorite::with('resource:id,title,address')->where('user_id',Auth::id())->get();
    }
 }

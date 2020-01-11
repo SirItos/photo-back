@@ -23,8 +23,12 @@ Route::middleware('auth:api')->group(function () {
   Route::post('set-user-details','UserController@setUserParams');
 
   Route::post('set-resource-params','ResourceController@setResourceParams');
+  Route::post('upload-images', 'ResourceIamgeController@upload');
+  Route::post('delete-images', 'ResourceIamgeController@delete');
+  Route::get('get-resourece-images','ResourceIamgeController@getSavedImages');
 
   Route::post('set-favorite','FavoriteController@setFavorite');
+  Route::get('get-favorite','FavoriteController@getFavorite');
 
 
   Route::post('geosearch','GeocoderController@Geosearch');

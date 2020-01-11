@@ -14,12 +14,19 @@ class Favorite extends Model
 
     public function getImgAttribute() 
     {
-        return storage_path();
+        $resource = $this->resource()->with('images:id,resource_id,url')->first();
+        if (count($resource->images)) {
+            return $resource->images[0];
+        } else {
+            return null;
+        }
+        
     }
 
     public function resource()
     {
         return $this->belongsTo(Resource::class);
+        
     }
 
 }

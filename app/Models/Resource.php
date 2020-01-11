@@ -10,11 +10,14 @@ class Resource extends Model
         'user_id','address','title','long','lat','description','resource_type','min_cost','max_cost', 'online','activated'
     ];
 
-    protected $appends = ['images'];
-
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function images()
+    {
+        return $this->hasMany(ResourceIamge::class);
     }
 
     public function favorite()
@@ -22,10 +25,9 @@ class Resource extends Model
         return $this->hasOne(Favorite::class);
     }
 
-    public function getImagesAttribute() 
-    {
-        return [];
-    }
+   
+
+
 
 
 
