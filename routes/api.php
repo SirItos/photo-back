@@ -15,6 +15,21 @@ Route::post('points','ResourceController@pointsInBound');
 
 Route::post('get-resource-params','ResourceController@getResourceParams');
 
+/**
+ * TODO ЗАЩИТА ЭТОГО МЕТОДА ЧЕРЕЗ ПАРОЛИ
+ *
+ * апи для вызовва cmd команд на сервере (т.к. необходим php 7+, а через панель ISP доступен глобальный 5.3)
+ */
+Route::get('execute-command',function() {
+  
+  try{
+     Artisan::call('storage:link');
+     dd('The [public/storage] directory has been linked.');
+  }
+   catch (Exception $e) {
+      Response::make($e->getMessage(), 500);
+    }
+});
 
 Route::middleware('auth:api')->group(function () {
   Route::post('set-pin','UserController@setPin');
