@@ -78,7 +78,10 @@ class UserController extends Controller
         $id = Auth::id();
         $updParams = [];
         forEach($request->params as $param) {
-            $updParams[$param['field']] = $param['value'] ;
+            
+                $updParams[$param['field']] = $param['value'] ;
+            
+            
         }
         Models\UserDetails::updateOrCreate(['user_id'=>$id],$updParams);
 

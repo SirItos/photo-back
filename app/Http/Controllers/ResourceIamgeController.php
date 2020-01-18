@@ -51,7 +51,7 @@ class ResourceIamgeController extends Controller
       Image::configure(array('driver' => 'gd'));
       $image = Image::make($file);
       
-      $image->resize(300, 350, function ($constraint) {
+      $image->resize(350,null, function ($constraint) {
           $constraint->aspectRatio();
       })
       ->orientate()
