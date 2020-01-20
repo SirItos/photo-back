@@ -16,6 +16,11 @@ Route::post('points','ResourceController@pointsInBound');
 Route::post('get-resource-params','ResourceController@getResourceParams');
 
 Route::post('feedback','FeedbackController@setFeedback');
+
+Route::post('event','StatsController@setStat');
+
+
+
 /**
  * TODO ЗАЩИТА ЭТОГО МЕТОДА ЧЕРЕЗ ПАРОЛИ
  *
@@ -45,8 +50,10 @@ Route::middleware('auth:api')->group(function () {
 
   Route::post('set-favorite','FavoriteController@setFavorite');
   Route::get('get-favorite','FavoriteController@getFavorite');
+  Route::post('get-event','StatsController@getStat');
 
   Route::post('feedback-auth','FeedbackController@setFeedbackAuth');
   Route::post('geosearch','GeocoderController@Geosearch');
   
+  Route::post('get-events','StatsController@getStats');
 });

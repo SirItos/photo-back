@@ -13,7 +13,8 @@ class Handler extends ExceptionHandler
      * @var array
      */
     protected $dontReport = [
-        //
+
+       
     ];
 
     /**
@@ -34,7 +35,20 @@ class Handler extends ExceptionHandler
      */
     public function report(Exception $exception)
     {
-        parent::report($exception);
+         if ($exception instanceof OAuthServerException) {
+            try {
+                $logger = $this->container->make(LoggerInterface::class);
+            } catch (Exception $e) {
+                throw $exception; // throw the original exception
+            }
+
+            $logger->error(
+                $exception->getMessage(),
+                ['exception' => $exception]
+            );
+        } else {
+            parent::report($exception);
+        }
     }
 
     /**
