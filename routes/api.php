@@ -19,6 +19,7 @@ Route::post('feedback','FeedbackController@setFeedback');
 
 Route::post('event','StatsController@setStat');
 
+// Route::get('geolocation', 'GeocoderController@locate');
 
 
 /**

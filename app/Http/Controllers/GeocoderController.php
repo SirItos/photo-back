@@ -36,4 +36,6 @@ class GeocoderController extends Controller
         ]);
         return response($response->getBody(),$response->getStatusCode());
     }
+
+    
 }

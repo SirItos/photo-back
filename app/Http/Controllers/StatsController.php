@@ -24,11 +24,7 @@ class StatsController extends Controller
 
     protected function getStats(Request $request) 
     {
-      
-        $methodName = $request->period;
-
-        $period = $this->$methodName($request->timestamp);
-        
+        $period = $this->period(strtolower($request->period));
         $query = Stats::groupBy('event')
                                ->selectRaw('count(*) as  total,event');
                                 
@@ -43,12 +39,20 @@ class StatsController extends Controller
     }
 
 
-    private function today($timestamp) 
+    private function period($period) 
     {
+      
       $timestamp = date('Y-m-d H:i:s');
+
       $date = Carbon::createFromFormat('Y-m-d H:i:s', $timestamp, '+3');
-      $start = $date->startOfDay();
-      $end = $start->copy()->endOfDay();  
+
+      if ($period === 'yesterday') {
+          $date->subDays(1);  
+      }
+      
+      $unit = $period === 'today' || $period === 'yesterday' ? 'day' :$period;
+      $start = $date->startOf($unit);
+      $end = $start->copy()->endOf($unit);  
       return array('start'=>$start,'last'=>$end);
     }
 
