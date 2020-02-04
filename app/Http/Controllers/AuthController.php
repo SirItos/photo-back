@@ -34,6 +34,28 @@ class AuthController extends Controller
       
     }
 
+    /**
+     * Refresh user token [POST]
+     * 
+     * @param Request
+     * @return response
+     */
+    protected function refreshToken(Request $request) 
+    {
+          $http = new Client;
+          $oAuth_client = Models\Client::getClient('custom_client');
+          $response = $http->post(env('APP_URL') . '/oauth/token', [
+              'form_params' => [
+                  'grant_type' => 'refresh_token',
+                  'refresh_token' => $request->refreshToken,
+                  'client_id' => $oAuth_client->id,
+                  'client_secret' => $oAuth_client->secret,
+                  'scope' => '*',
+              ],
+          ]);
+          return response($response->getBody(),$response->getStatusCode());
+    }
+
        /**
      * Generate oAuth2 token for user (password)
      * 
@@ -75,4 +97,6 @@ class AuthController extends Controller
             break;
         }
     }
+
+    
 }

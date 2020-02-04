@@ -24,6 +24,7 @@ class GeocoderController extends Controller
         $query = [
              'apikey'=>env('API_KEY'),
              'geocode'=>$request->val,
+              'sco'=>'latlong',  
              'spn'=>'3.552069,2.400552',
              'lang'=>'ru_RU',
              'format'=>'json'
@@ -36,6 +37,22 @@ class GeocoderController extends Controller
         ]);
         return response($response->getBody(),$response->getStatusCode());
     }
+
+   protected function ipLocation(Request $request)
+   {
+       
+       $ipLocal = new Client([
+           'base_uri'=>'http://api.ipstack.com/'
+       ]);
+       $result = $ipLocal->get($request->ip(),['query'=>[
+                'access_key'=>env('IP_LOCATE_KEY'),
+                'format'=>1
+                ]
+            ]
+       );
+       return $result->getBody();
+
+   }
 
     
 }

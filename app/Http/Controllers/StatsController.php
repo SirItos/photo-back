@@ -6,6 +6,7 @@ use App\Models\Stats;
 use App\Models\Resource;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class StatsController extends Controller
 {
@@ -24,13 +25,15 @@ class StatsController extends Controller
 
     protected function getStats(Request $request) 
     {
+        
         $period = $this->period(strtolower($request->period));
+        
         $query = Stats::groupBy('event')
                                ->selectRaw('count(*) as  total,event');
                                 
         $query->whereBetween('created_at',$period);
         
-        $collection = $query->where('owner_id',$request->id)->get();
+        $collection = $query->where('owner_id',Auth::id())->get();
         $result = $collection->reduce(function($result,$group) {
             $result[$group['event']] = $group['total'];
             return $result;

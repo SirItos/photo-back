@@ -7,6 +7,7 @@ use App\Models\Favorite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+
 class ResourceController extends Controller
 {
     protected function setResourceParams(Request $request)
@@ -68,12 +69,14 @@ class ResourceController extends Controller
         } else {
             $query->whereBetween('long',[$request->sw['lng'], $request->ne['lng']]);
         }
-        $collection = $query->get(['id','lat','long']); 
+        $collection = $query->get(['id','lat','long','resource_type']); 
         return $collection->map(function ($item) {
             
             return ['id'=>$item->id, 
                     'lat'=>$item->lat, 
-                    'long'=>$item->long];
+                    'long'=>$item->long,
+                    'resource_type'=>$item->resource_type
+                    ];
         });
     }
 
@@ -124,5 +127,15 @@ class ResourceController extends Controller
 
 
         return $query;
+    }
+
+    protected function softDelete(Request $request) 
+    {
+        Resource::where('id',$request->id)->delete();
+    }
+
+    protected function restore(Request $request) 
+    {
+        Resource::where('id',$request->id)->restore();
     }
 }
