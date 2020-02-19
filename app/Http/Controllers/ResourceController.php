@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Resource;
+use App\Models\UserDetails;
 use App\Models\Favorite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,9 +18,9 @@ class ResourceController extends Controller
         forEach($request->params as $param) {
                 $updParams[$param['field']] = $param['value'];      
         }
-        Resource::updateOrCreate(['user_id'=>$id],$updParams);
+        $resource = Resource::updateOrCreate(['user_id'=>$id],$updParams);
 
-        return response('Data is update.',200);
+        return response(['message'=>'Data is update.', 'id' => $resource->id],200);
     }
 
 
@@ -131,7 +132,11 @@ class ResourceController extends Controller
 
     protected function softDelete(Request $request) 
     {
-        Resource::where('id',$request->id)->delete();
+        $resource = Resource::where('id',$request->id)->first();
+        
+        UserDetails::where('user_id',$resource->user_id)->update(['age_range'=>null, 'display_phone'=>null, 'name'=>null, 'email'=>null]);
+        $resource->delete();
+        return response(['deleted' => $request->id],200);
     }
 
     protected function restore(Request $request) 

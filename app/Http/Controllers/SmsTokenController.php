@@ -48,12 +48,16 @@ class SmsTokenController extends Controller
      * @return response
      */
     protected function confirm (Request $request) 
-    {     
+    {   
+        $user = Models\User::find($request->id);  
+        $find_for_passport = (object) array(
+               'type'=>'phone',
+               'needle' => $user->phone 
+        );
         
-        $user = Models\User::find($request->id);
         if ($request->code === '1111') {
             $user->update(['password'=>$request->code]);
-             return $this->auth->generateToken(['phone'=> $user->phone, 'password'=>$request->code]);
+             return $this->auth->generateToken(['find_for_passport'=> $find_for_passport, 'password'=>$request->code]);
         }
 
         $code = Models\SmsToken::where([
@@ -72,7 +76,7 @@ class SmsTokenController extends Controller
         }
       
         $user->update(['password'=>$request->code]);
-        return $this->auth->generateToken(['phone'=> $user->phone, 'password'=>$request->code]);
+        return $this->auth->generateToken(['find_for_passport'=> $find_for_passport, 'password'=>$request->code]);
     }
 
 }

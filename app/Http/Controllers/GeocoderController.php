@@ -15,24 +15,22 @@ class GeocoderController extends Controller
     public function __construct(Client $client)
     {
         $this->http = new $client([
-            'base_uri' => 'https://geocode-maps.yandex.ru/',
+            // https://geocode-maps.yandex.ru/
+            'base_uri' => 'https://maps.googleapis.com/',
         ]);
     }
     
     protected function Geosearch(Request $request)
     {
         $query = [
-             'apikey'=>env('API_KEY'),
-             'geocode'=>$request->val,
-              'sco'=>'latlong',  
-             'spn'=>'3.552069,2.400552',
-             'lang'=>'ru_RU',
-             'format'=>'json'
+             'key'=>env('GOOGLE_KEY'),
+             'address'=>$request->address,
+             'latlng'=>$request->latlng,
+             'region'=>'ru',
+             'language'=>'ru'
         ];
-        if ($request->ll) {
-            $query['ll']= $request->ll['lng'] . ',' .$request->ll['lat'];
-        }
-        $response = $this->http->request('GET','1.x/',[
+        
+        $response = $this->http->request('GET','maps/api/geocode/json',[
             'query'=>$query
         ]);
         return response($response->getBody(),$response->getStatusCode());

@@ -18,21 +18,30 @@ class AuthController extends Controller
      */
     protected function auth(Request $request)
     {
-       if (Auth::attempt(
+        $attempt = $request->type === 'phone' ? 
            [
                'phone'=>$request->phone,
                'password'=>$request->code
-           ]
-       ))  {
+           ] :
+           [
+               'login'=>$request->login,
+               'password'=>$request->password
+           ];
+       if (Auth::attempt($attempt))  {
            return $this->generateToken([
-           'phone'=> $request->phone, 
-           'password'=>$request->code
+           'find_for_passport'=> (object) array(
+               'type'=>$request->type,
+               'needle' => isset($request->phone) ? $request->phone :  $request->login
+            ),
+           'password'=>isset($request->code) ? $request->code : $request->password
            ]);
-       }
-       return response('Пользователь с таким номером телефона не зарегистрирован',401);
+       };
+       $message = $request->type === 'phone'? 'Пользователь с таким номером телефона не зарегистрирован' : 'Неверный логин или пароль';
+       return response($message,401);
 
       
     }
+
 
     /**
      * Refresh user token [POST]
@@ -65,6 +74,7 @@ class AuthController extends Controller
     public function generateToken(array $userInfo)
     {
         
+        
         $http = new Client;
         $oAuth_client = Models\Client::getClient('custom_client');
         $response = $http->post(env('APP_URL') . '/oauth/token', [
@@ -72,24 +82,24 @@ class AuthController extends Controller
                 'grant_type' => 'password',
                 'client_id' => $oAuth_client->id,
                 'client_secret' => $oAuth_client->secret,
-                'username' => $userInfo['phone'],
+                'username' => $userInfo['find_for_passport'],
                 'password' => $userInfo['password'],
                 'scope' => '*'
             ]
         ]);
-        $body = $response->getBody();
-
+        $body = $response->getBody();                
         $status = $response->getStatusCode();
         switch ($status) {
             case HttpResponse::HTTP_OK:
             case HttpResponse::HTTP_CREATED:
             case HttpResponse::HTTP_ACCEPTED:
-                $user = Models\User::where('phone',$userInfo['phone'])->first();
-                if (!$user->phone_verificated) {
-                    $user->phone_verificated = Carbon::now();
-                    $user->save();
-                }
-                
+                if ($userInfo['find_for_passport']->type === "phone") {
+                $user = Models\User::where('phone',$userInfo['find_for_passport']->needle)->first();
+                    if (!$user->phone_verificated) {
+                        $user->phone_verificated = Carbon::now();
+                        $user->save();
+                    }
+                }    
                 return response($body,$status);
             break;
             default:

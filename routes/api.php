@@ -23,26 +23,26 @@ Route::post('refresh-token','AuthController@refreshToken');
 
 Route::get('alt-locate','GeocoderController@ipLocation');
 
-// Route::get('geolocation', 'GeocoderController@locate');
 
 
-/**
- * TODO ЗАЩИТА ЭТОГО МЕТОДА ЧЕРЕЗ ПАРОЛИ
+
+// Route::post('execute-command',function(Request $request) {
+  
+//   try{
+//     // system('composer dump-autoload');
+//      Artisan::call($request->body);
+//      dd('The [public/storage] directory has been linked.');
+//   }
+//    catch (Exception $e) {
+//      return $e;
+//       Response::make($e->getMessage(), 500);
+//     }
+// });
+ /* TODO ЗАЩИТА ЭТОГО МЕТОДА ЧЕРЕЗ ПАРОЛИ
  *
  * апи для вызовва cmd команд на сервере (т.к. необходим php 7+, а через панель ISP доступен глобальный 5.3)
  */
-Route::post('execute-command',function(Request $request) {
-  
-  try{
-    // system('composer dump-autoload');
-     Artisan::call($request->body);
-     dd('The [public/storage] directory has been linked.');
-  }
-   catch (Exception $e) {
-     return $e;
-      Response::make($e->getMessage(), 500);
-    }
-});
+// 
 
 Route::middleware('auth:api')->group(function () {
 

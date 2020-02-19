@@ -68,7 +68,8 @@ class User extends Authenticatable
         return $this->hasMany(Favorite::class);
     }
 
-    public function findForPassport($phone) {
-        return $this->where('phone',$phone)->first();
+    public function findForPassport(array $data) 
+    {
+        return $this->where($data['type'],$data['needle'])->first();
     }
 }
