@@ -73,7 +73,14 @@ Route::middleware('auth:api')->group(function () {
     Route::get('get-favorite','FavoriteController@getFavorite');
   });
   
-  
+
+  /**
+   * Routes for admin, manager
+   */
+  Route::group(['middleware'=>['role:admin|manager']], function() {
+    Route::get('get-counter','CountController@getCount');
+    Route::post('/admin/resources', 'ResourceController@getAll');
+  });
 
   
   

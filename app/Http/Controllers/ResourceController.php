@@ -143,4 +143,27 @@ class ResourceController extends Controller
     {
         Resource::where('id',$request->id)->restore();
     }
+
+
+
+    /**
+     * Get all resources for admin panel
+     * 
+     * @param request
+     * @return resonse (array)
+     */
+    protected function getAll(Request $request) 
+    {   
+
+        $query = new Resource();
+        if ($request->sortBy) {
+            
+            $query = $query::orderBy($request->sortBy,$request->sortDesc);
+                    //   ->paginate(1,['*'],'page',$request->page);
+        } else {
+            $query = $query::orderBy('id','desc');
+        }
+        
+       return $query->paginate(1,['*'],'page',$request->page);
+    }
 }

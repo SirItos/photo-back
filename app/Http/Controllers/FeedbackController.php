@@ -39,6 +39,8 @@ class FeedbackController extends Controller
     protected function setFeedback(Request $request)
     {
         Feedback::create(['email'=>$request->email, 'description'=>$request->description]);
+        
+        return response(['message' => 'сообщение отправлено'],200);
     }
 
     protected function getFeedback(Request $request) 
