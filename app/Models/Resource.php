@@ -27,10 +27,8 @@ class Resource extends Model
         return $this->hasOne(Favorite::class);
     }
 
-   
-
-
-
-
-
+    public function statustitle() 
+    {
+        return $this->belongsTo(StatusCode::class,'status','code');
+    }
 }

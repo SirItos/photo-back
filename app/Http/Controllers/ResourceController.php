@@ -154,16 +154,20 @@ class ResourceController extends Controller
      */
     protected function getAll(Request $request) 
     {   
-
-        $query = new Resource();
-        if ($request->sortBy) {
-            
-            $query = $query::orderBy($request->sortBy,$request->sortDesc);
-                    //   ->paginate(1,['*'],'page',$request->page);
-        } else {
-            $query = $query::orderBy('id','desc');
+        
+        $query = Resource::with('statustitle:id,code,status_title')->orderBy($request->sortBy ? $request->sortBy : 'id',
+                                   $request->sortDesc ? $request->sortDesc : 'desc' );
+        if ($request->search) 
+        {
+             $query->whereHas('statustitle',function($query) use ($request)  {
+                $query->where('status_title','LIKE','%'.$request->search.'%');
+             })->orWhere('id','LIKE','%'.$request->search.'%')
+                   ->orWhere('title','LIKE','%'.$request->search.'%')
+                   ->orWhere('created_at','LIKE','%'.$request->search.'%');
+                   
+                //    ->orWhere('statustitle.status_title','LIKE','%'.$request->search.'%');
         }
         
-       return $query->paginate(1,['*'],'page',$request->page);
+       return $query->paginate($request->paginate,['*'],'page',$request->page);
     }
 }
