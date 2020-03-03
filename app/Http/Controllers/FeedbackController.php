@@ -45,6 +45,29 @@ class FeedbackController extends Controller
 
     protected function getFeedback(Request $request) 
     {
+        $query = Feedback::with('statustitle:id,code,status_title','user')->orderBy($request->sortBy ? $request->sortBy : 'id',
+                                        $request->sortDesc ? $request->sortDesc : 'desc' );
+                if ($request->search) 
+                {
+                    $query->whereHas('statustitle',function($query) use ($request)  {
+                        $query->where('status_title','LIKE','%'.$request->search.'%');
+                    })->orWhereHas('user', function($query) use($request) {
+                        $query->where('phone','LIKE','%'.$request->search.'%');  
+                    })->orWhere('id','LIKE','%'.$request->search.'%')   
+                        ->orWhere('email','LIKE','%'.$request->search.'%')
+                        ->orWhere('created_at','LIKE','%'.$request->search.'%');
+                }
+                
+            return $query->paginate($request->paginate,['*'],'page',$request->page);
+    }
 
+     protected function changeFeedbackStatus(Request $request)
+    {
+  
+        Feedback::whereIn('id',$request->obj)->update(['status'=>$request->status]);  
+        return response(['obj' =>Feedback::with('statustitle:id,code,status_title')
+                        ->whereIn('id',$request->obj)->get()],'200');
+
+                        // TODO add email sender
     }
 }

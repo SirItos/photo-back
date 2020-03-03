@@ -32,8 +32,14 @@ class ResourceController extends Controller
     protected function getResourceParams(Request $request)
     {
         $query =  Resource::where('id',$request->id);
+        
         if ($request->all) {
-            return $query->with('user:id,phone','favorite:id,resource_id','images:id,resource_id,url')->first();
+            $result =  $query->with('user:id,phone','user.userDetails','favorite:id,resource_id','images:id,resource_id,url','statustitle:id,code,status_title')->first();
+            if ($result->status === 0 && $request->admin) {
+                $result->status = 1;
+                $result->save();
+            }
+            return $result;
         }
         return $query->first($request->params);
      
@@ -80,6 +86,9 @@ class ResourceController extends Controller
                     ];
         });
     }
+
+
+
 
     /**
      * Enable all fillters
@@ -164,10 +173,23 @@ class ResourceController extends Controller
              })->orWhere('id','LIKE','%'.$request->search.'%')
                    ->orWhere('title','LIKE','%'.$request->search.'%')
                    ->orWhere('created_at','LIKE','%'.$request->search.'%');
-                   
-                //    ->orWhere('statustitle.status_title','LIKE','%'.$request->search.'%');
         }
         
        return $query->paginate($request->paginate,['*'],'page',$request->page);
     }
+
+    protected function changeResourceStatus(Request $request)
+    {
+        $updateParams['status'] = $request->status;
+        if ($request->status === 2){
+            $updateParams['activated'] = 1;
+        } 
+        if ($request->status === 3){
+            $updateParams['activated'] = 0;
+        }
+        Resource::whereIn('id',$request->obj)->update($updateParams);  
+        return response(['obj' =>Resource::with('statustitle:id,code,status_title')
+                        ->whereIn('id',$request->obj)->get()],'200');
+    }
 }
+ 

@@ -29,7 +29,7 @@ Route::get('alt-locate','GeocoderController@ipLocation');
 // Route::post('execute-command',function(Request $request) {
   
 //   try{
-//     // system('composer dump-autoload');
+    
 //      Artisan::call($request->body);
 //      dd('The [public/storage] directory has been linked.');
 //   }
@@ -73,13 +73,19 @@ Route::middleware('auth:api')->group(function () {
     Route::get('get-favorite','FavoriteController@getFavorite');
   });
   
-
+ 
   /**
    * Routes for admin, manager
    */
   Route::group(['middleware'=>['role:admin|manager']], function() {
     Route::get('get-counter','CountController@getCount');
     Route::post('/admin/resources', 'ResourceController@getAll');
+    Route::post('/admin/resources/status','ResourceController@changeResourceStatus');
+
+    Route::post('/admin/feedback','FeedbackController@getFeedback');
+    Route::post('/admin/feedback/status','FeedbackController@changeFeedbackStatus');
+
+    Route::post('/admin/user','UserController@getAll');
   });
 
   

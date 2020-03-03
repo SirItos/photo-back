@@ -119,5 +119,11 @@ class UserController extends Controller
         }
     }
 
+    protected function getAll(Request $request)
+    {
+        return Models\User::with('roles','userDetails')
+        ->orderBy($request->sortBy ? $request->sortBy : 'id', $request->sortDesc ? $request->sortDesc : 'desc' )
+        ->paginate($request->paginate,['*'],'page',$request->page);
+    }
  
 }

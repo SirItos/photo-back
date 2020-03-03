@@ -14,4 +14,9 @@ class Feedback extends Model
     {
         return $this->belongsTo(User::class);
     }
+    
+    public function statustitle() 
+    {
+        return $this->belongsTo(StatusCode::class,'status','code');
+    }
 }
