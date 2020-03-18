@@ -58,6 +58,10 @@ class ResourceController extends Controller
         $query = Resource::where([['activated',1]])
                          ->whereHas('user.userDetails', function($query) {
                              return $query->where('online',1);
+                         })->whereHas('user', function($query){
+                             return $query->where('status',5);
+                         })->whereHas('user.roles', function($query){
+                             return $query->where('name','provider');
                          });
         
      

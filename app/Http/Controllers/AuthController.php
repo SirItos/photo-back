@@ -28,6 +28,9 @@ class AuthController extends Controller
                'password'=>$request->password
            ];
        if (Auth::attempt($attempt))  {
+           if (Auth::user()->status !== 5) {
+                return response('Пользователь заблокирован',401); 
+            }
            return $this->generateToken([
            'find_for_passport'=> (object) array(
                'type'=>$request->type,

@@ -48,7 +48,7 @@ class UserController extends Controller
         
         return response([
             'user_id'=>$user->id,
-            'code'=>$this->sms->createCode($user->id)
+            'code'=>$request->no_sms ? null : $this->sms->createCode($user->id)
         ]);
  
     }  
@@ -91,9 +91,8 @@ class UserController extends Controller
 
     protected function getUserParams(Request $request)
     {
-        $id = Auth::id();
-        
-        $user = Models\User::with('roles','userDetails','resource','resource.images')->where('id',$id)->first();
+        $id = $request->id ? $request->id : Auth::id();
+        $user = Models\User::with('roles','userDetails','resource','resource.images','statustitle')->where('id',$id)->first();
         $result = [];
         forEach($request->params as $param) {
             $result[$param] = $user[$param];
@@ -121,9 +120,80 @@ class UserController extends Controller
 
     protected function getAll(Request $request)
     {
-        return Models\User::with('roles','userDetails')
-        ->orderBy($request->sortBy ? $request->sortBy : 'id', $request->sortDesc ? $request->sortDesc : 'desc' )
-        ->paginate($request->paginate,['*'],'page',$request->page);
+        $query =  Models\User::with('roles','userDetails','statustitle')
+        ->orderBy('id',  'desc' )->withTrashed();
+
+            if ($request->search) 
+                {
+                    $query->whereHas('roles',function($query) use ($request)  {
+                        $query->where('name','LIKE','%'.$request->search.'%')
+                        ->orWhere('name_ru','LIKE','%'.$request->search.'%');
+                    })->orWhereHas('userDetails', function($query) use($request) {
+                        $query->where('phone','LIKE','%'.$request->search.'%');
+                    })->orWhereHas('statustitle',function($query) use ($request) {
+                        $query->where('status_title','LIKE','%'.$request->search.'%');
+                    })->orWhere('id','LIKE','%'.$request->search.'%')   
+                        ->orWhere('login','LIKE','%'.$request->search.'%')
+                        ->orWhere('phone','LIKE','%'.$request->search.'%')
+                        ->orWhere('created_at','LIKE','%'.$request->search.'%');
+                }
+        return $query->paginate($request->paginate,['*'],'page',$request->page);
     }
+
+
+     protected function changeUserStatus(Request $request)
+    {
+        //TODO CHECK USER ROLE 
+        Models\User::whereIn('id',$request->obj)->update(['status'=>$request->status]);  
+        return response(['obj' =>Models\User::with('statustitle:id,code,status_title')
+                        ->whereIn('id',$request->obj)->get()],'200');
+                       
+    }
+
+
+    protected function editUserAdmin(Request $request)
+    {
+        $newAttr = array( 
+            Auth::user()->hasRole(['admin','manager']) ? 'login' : 'phone' => $request->login,
+            'status'=> $request->status ? 5 : 6
+        );
+        
+        $details = array (
+           'name'=>$request->details['name'],
+           'email'=>$request->details['email'],
+
+        );
+        if ($request->password) {
+            $newAttr['password'] = $request->password;
+        };
+
+
+
+        $user = Models\User::where('id',$request->id)->first();
+        $detail = Models\UserDetails::updateOrCreate(['user_id'=>$request->id],$details);
+        $user->syncRoles([$request->role['value']]);
+        $user->update($newAttr);
+      
+        return $user->refresh()->load('userDetails')->userDetails->name;        
+    }
+
+    protected function createUserAdmin(Request $request)
+    {
+        $user = new Models\User();
+        $user->login = $request->login;
+        $user->password = $request->password;
+        $user->status = 5;
+        $user->save();
+        $user->refresh();
+        $user->syncRoles([$request->role['value']]);
+        $details = array (
+           'name'=>$request->details['name'],
+           'email'=>$request->details['email'],
+
+        );
+        $detail = Models\UserDetails::updateOrCreate(['user_id'=>$user->id],$details);
+
+    }
+    
  
 }

@@ -51,7 +51,7 @@ Route::middleware('auth:api')->group(function () {
   Route::post('set-role','UserController@setRole');
   Route::post('set-user-details','UserController@setUserParams');
   Route::post('feedback-auth','FeedbackController@setFeedbackAuth');
-
+  Route::get('role-list', 'RoleController@all');
   /**
    * Route fors provider
    */
@@ -84,8 +84,17 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('/admin/feedback','FeedbackController@getFeedback');
     Route::post('/admin/feedback/status','FeedbackController@changeFeedbackStatus');
+    Route::post('/admin/feedback/details','FeedbackController@getById');
+    Route::post('/admin/feedback/answer','FeedbackController@answer');
 
     Route::post('/admin/user','UserController@getAll');
+    Route::post('/admin/user/status','UserController@changeUserStatus');
+    Route::post('/admin/user/edit','UserController@editUserAdmin');
+
+
+    Route::group(['middleware'=>['role:admin']], function() {
+      Route::post('/admin/user/create','UserController@createUserAdmin');
+    });
   });
 
   

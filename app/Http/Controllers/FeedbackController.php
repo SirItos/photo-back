@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Feedback;
 use App\Models\UserDetails;
+use App\Models\Answer;
+use App\Mail\AnswerMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class FeedbackController extends Controller
 {
@@ -45,7 +48,7 @@ class FeedbackController extends Controller
 
     protected function getFeedback(Request $request) 
     {
-        $query = Feedback::with('statustitle:id,code,status_title','user')->orderBy($request->sortBy ? $request->sortBy : 'id',
+        $query = Feedback::with('statustitle:id,code,status_title','user','answer')->orderBy($request->sortBy ? $request->sortBy : 'id',
                                         $request->sortDesc ? $request->sortDesc : 'desc' );
                 if ($request->search) 
                 {
@@ -61,13 +64,41 @@ class FeedbackController extends Controller
             return $query->paginate($request->paginate,['*'],'page',$request->page);
     }
 
-     protected function changeFeedbackStatus(Request $request)
+    protected function changeFeedbackStatus(Request $request)
     {
   
         Feedback::whereIn('id',$request->obj)->update(['status'=>$request->status]);  
         return response(['obj' =>Feedback::with('statustitle:id,code,status_title')
                         ->whereIn('id',$request->obj)->get()],'200');
 
-                        // TODO add email sender
+    } 
+
+    protected function getById(Request $request)
+    {
+        return Feedback::where('id',$request->id)->with('statustitle:id,code,status_title','answer')->first();
+    }
+
+    protected function answer(Request $request)
+    {
+
+        
+        $feedback = Feedback::where('id', $request->id)->first();
+       
+        $content = (object) array(
+            'title'=> $request->title,
+            'text'=>$request->answer
+        );
+
+        try {
+            Mail::to($feedback->email)->send(new AnswerMail($content));
+            $feedback->status = 4;
+            $feedback->save();
+            $feedback->refresh();
+            Answer::updateOrCreate(['feedback_id'=>$request->id],['answer'=>$request->answer, 'title'=>$request->title]);
+            return response(['status'=>$feedback->status, 'status_title'=>$feedback->statustitle['status_title'], 'answer'=>$feedback-answer],200);
+        } catch (\Exception  $th) {
+            return response(['message'=>$th->getMessage(),'status'=>'erorr'],413);
+        }
+        
     }
 }

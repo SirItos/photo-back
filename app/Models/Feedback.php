@@ -19,4 +19,9 @@ class Feedback extends Model
     {
         return $this->belongsTo(StatusCode::class,'status','code');
     }
+
+    public function answer()
+    {
+        return $this->hasOne(Answer::class);
+    }
 }

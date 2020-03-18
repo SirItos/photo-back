@@ -6,18 +6,23 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
-    use Notifiable, HasApiTokens, HasRoles;
+    use Notifiable, HasApiTokens, HasRoles, SoftDeletes;
 
     protected  $guard_name = "api";
+
 
     protected $fillable = [
         'phone_verificated',
         'password_set',
         'password',
-        'phone'
+        'phone',
+        'login',
+        'status'
     ];
 
     protected $hidden = [
@@ -72,4 +77,10 @@ class User extends Authenticatable
     {
         return $this->where($data['type'],$data['needle'])->first();
     }
+
+     public function statustitle() 
+    {
+        return $this->belongsTo(StatusCode::class,'status','code');
+    }
+
 }
