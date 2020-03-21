@@ -15,7 +15,7 @@ Route::post('points','ResourceController@pointsInBound');
 
 Route::post('get-resource-params','ResourceController@getResourceParams');
 
-Route::post('feedback','FeedbackController@setFeedback');
+Route::post('feedback','FeedbackController@setFeedback')->middleware('reCaptcha');
 
 Route::post('event','StatsController@setStat');
 
@@ -50,7 +50,7 @@ Route::middleware('auth:api')->group(function () {
   Route::post('user-params','UserController@getUserParams');
   Route::post('set-role','UserController@setRole');
   Route::post('set-user-details','UserController@setUserParams');
-  Route::post('feedback-auth','FeedbackController@setFeedbackAuth');
+  Route::post('feedback-auth','FeedbackController@setFeedbackAuth')->middleware('reCaptcha');
   Route::get('role-list', 'RoleController@all');
   /**
    * Route fors provider
