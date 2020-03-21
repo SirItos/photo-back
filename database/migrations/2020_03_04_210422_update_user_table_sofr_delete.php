@@ -14,8 +14,8 @@ class UpdateUserTableSofrDelete extends Migration
     public function up()
     {
           Schema::table('users', function (Blueprint $table) {
-           $table->integer('status')->after('password_set')->default(5);
-           $table->softDeletes()->after('updated_at');
+        //    $table->integer('status')->after('password_set')->default(5);
+        //    $table->softDeletes()->after('updated_at');
        });
     }
 

@@ -134,8 +134,8 @@ class UserController extends Controller
                         $query->where('status_title','LIKE','%'.$request->search.'%');
                     })->orWhere('id','LIKE','%'.$request->search.'%')   
                         ->orWhere('login','LIKE','%'.$request->search.'%')
-                        ->orWhere('phone','LIKE','%'.$request->search.'%')
-                        ->orWhere('created_at','LIKE','%'.$request->search.'%');
+                        ->orWhere('phone','LIKE','%'.$request->search.'%');
+                        // ->orWhere('created_at','LIKE','%'.$request->search.'%')
                 }
         return $query->paginate($request->paginate,['*'],'page',$request->page);
     }

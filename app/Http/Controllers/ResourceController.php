@@ -175,8 +175,8 @@ class ResourceController extends Controller
              $query->whereHas('statustitle',function($query) use ($request)  {
                 $query->where('status_title','LIKE','%'.$request->search.'%');
              })->orWhere('id','LIKE','%'.$request->search.'%')
-                   ->orWhere('title','LIKE','%'.$request->search.'%')
-                   ->orWhere('created_at','LIKE','%'.$request->search.'%');
+                   ->orWhere('title','LIKE','%'.$request->search.'%');
+//                   ->orWhere('created_at','LIKE','%'.$request->search.'%');
         }
         
        return $query->paginate($request->paginate,['*'],'page',$request->page);

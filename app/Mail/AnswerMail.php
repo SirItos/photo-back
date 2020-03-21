@@ -32,5 +32,5 @@ class AnswerMail extends Mailable
         return $this->from('info@bazabab.ru')
                     ->subject($this->data->title)
                     ->view('mail.answer');
-    }
+    }   
 }

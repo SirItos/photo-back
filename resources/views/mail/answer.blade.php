@@ -1,1 +1,1 @@
-<div> Текст письма : {{$data->text}}</div>
+<div> Текст письма : {{$data->answer}}</div>

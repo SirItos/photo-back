@@ -57,8 +57,8 @@ class FeedbackController extends Controller
                     })->orWhereHas('user', function($query) use($request) {
                         $query->where('phone','LIKE','%'.$request->search.'%');  
                     })->orWhere('id','LIKE','%'.$request->search.'%')   
-                        ->orWhere('email','LIKE','%'.$request->search.'%')
-                        ->orWhere('created_at','LIKE','%'.$request->search.'%');
+                        ->orWhere('email','LIKE','%'.$request->search.'%');
+                        // ->orWhere('created_at','LIKE','%'.$request->search.'%');
                 }
                 
             return $query->paginate($request->paginate,['*'],'page',$request->page);
@@ -75,7 +75,12 @@ class FeedbackController extends Controller
 
     protected function getById(Request $request)
     {
-        return Feedback::where('id',$request->id)->with('statustitle:id,code,status_title','answer')->first();
+
+        $feedback =  Feedback::where('id',$request->id)->with('statustitle:id,code,status_title','answer')->first();
+        $feedback->status = 1;
+        $feedback->save();
+        $feedback->refresh();
+        return $feedback;
     }
 
     protected function answer(Request $request)
@@ -85,8 +90,8 @@ class FeedbackController extends Controller
         $feedback = Feedback::where('id', $request->id)->first();
        
         $content = (object) array(
-            'title'=> $request->title,
-            'text'=>$request->answer
+            'title'=> $request->title ? $request->title : 'Ответ на обращение',
+            'answer'=>$request->answer
         );
 
         try {
@@ -94,8 +99,8 @@ class FeedbackController extends Controller
             $feedback->status = 4;
             $feedback->save();
             $feedback->refresh();
-            Answer::updateOrCreate(['feedback_id'=>$request->id],['answer'=>$request->answer, 'title'=>$request->title]);
-            return response(['status'=>$feedback->status, 'status_title'=>$feedback->statustitle['status_title'], 'answer'=>$feedback-answer],200);
+            Answer::updateOrCreate(['feedback_id'=>$request->id],['answer'=>$content->answer, 'title'=>$content->title]);
+            return response(['status'=>$feedback->status, 'status_title'=>$feedback->statustitle['status_title'], 'answer'=>$feedback->answer],200);
         } catch (\Exception  $th) {
             return response(['message'=>$th->getMessage(),'status'=>'erorr'],413);
         }
