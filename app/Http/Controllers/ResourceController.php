@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Resource;
+use App\Models\Notifications;
 use App\Models\UserDetails;
 use App\Models\Favorite;
+use App\Mail\NotificationMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 
 class ResourceController extends Controller
@@ -187,13 +190,60 @@ class ResourceController extends Controller
         $updateParams['status'] = $request->status;
         if ($request->status === 2){
             $updateParams['activated'] = 1;
+            $this->saveSendUserNotification($request->obj, $request->status);
         } 
-        if ($request->status === 3){
+        // return $request->status;
+        if ($request->status === 3 || $request->status === 6){
             $updateParams['activated'] = 0;
+            $this->saveSendUserNotification($request->obj, $request->status, $request->reason);
         }
+
         Resource::whereIn('id',$request->obj)->update($updateParams);  
         return response(['obj' =>Resource::with('statustitle:id,code,status_title')
                         ->whereIn('id',$request->obj)->get()],'200');
+    }
+
+    private function saveSendUserNotification(array $ids, $status, $reason = null) 
+    {
+        foreach($ids as $id) {
+            $user = Resource::where('id',$id)->with('user.userDetails')->first();
+            if(isset($user->user->userDetails->email)) {
+                $content = [];
+                $title = 'Анкета активирована!';
+                if ($status === 6 ) {
+                    $title = 'Анкета заблокирована!';
+                    $content['title'] = 'Анкета заблокирована!';
+                    $content['result'] = 'заблокирована!';
+                    $content['good'] = false;
+                    $content['reason'] = isset($reason) ? $reason : 'Без указания причины. По всем вопросам обращайтесь по адресу info.bazabab@gmail.com';
+                } else if ($status === 3) {
+                    $title = 'Анкета отклонена!';
+                    $content['title'] = 'Анкета не прошла проверку';
+                    $content['result'] = 'не прошла проверку';
+                    $content['good'] = false;
+                    $content['reason'] = isset($reason) ? $reason : 'Без указания причины. По всем вопросам обращайтесь по адресу info.bazabab@gmail.com';
+                } else {
+                    $content['title'] = 'Анкета активирована!';
+                    $content['result'] = 'активирована!';
+                    $content['good'] = true;
+                }
+               try {
+                    Mail::to($user->user->userDetails->email)->send(new NotificationMail((object) $content)); 
+                    $notificationsOlad = Notifications::where('user_id',$user->user->id)->delete();
+                    if ($user->status === 0 || $user->status === 1 || $user->status === 2) {
+                        Notifications::create([
+                            'title'=>$title,
+                            'user_id' => $user->user->id,
+                            'description'=>$reason ? $reason : null
+                        ]);
+                    }
+                } catch (\Exception  $th) {
+                    // Тут должен быть обработчик ошибки
+                    // ключевой момент должен быть
+                } 
+            }
+        }
+         
     }
 }
  

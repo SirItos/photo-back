@@ -29,7 +29,7 @@ class AuthController extends Controller
            ];
        if (Auth::attempt($attempt))  {
            if (Auth::user()->status !== 5) {
-                return response('Пользователь заблокирован',401); 
+                return response('Пользователь заблокирован',403); 
             }
            return $this->generateToken([
            'find_for_passport'=> (object) array(
@@ -39,11 +39,26 @@ class AuthController extends Controller
            'password'=>isset($request->code) ? $request->code : $request->password
            ]);
        };
+       
        $message = $request->type === 'phone'? 'Пользователь с таким номером телефона не зарегистрирован' : 'Неверный логин или пароль';
-       return response($message,401);
+       $status = 401;
+       
+       if ($this->checkUserExist(Auth::id())){
+          $message = 'Неверный номер телефона или пароль';
+          $status = 403;  
+       }
+       return response($message,$status);
 
       
     }
+
+    private function checkUserExist($id) {
+        return (Models\User::where('id',$id)->first() === null);
+    }
+
+
+  
+
 
 
     /**

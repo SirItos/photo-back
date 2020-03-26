@@ -23,7 +23,7 @@ Route::post('refresh-token','AuthController@refreshToken');
 
 Route::get('alt-locate','GeocoderController@ipLocation');
 
-
+Route::post('reset-password','UserController@rememberPassword');
 
 
 // Route::post('execute-command',function(Request $request) {
@@ -52,6 +52,7 @@ Route::middleware('auth:api')->group(function () {
   Route::post('set-user-details','UserController@setUserParams');
   Route::post('feedback-auth','FeedbackController@setFeedbackAuth')->middleware('reCaptcha');
   Route::get('role-list', 'RoleController@all');
+  Route::post('saw-notification', 'UserController@sawNotification');
   /**
    * Route fors provider
    */

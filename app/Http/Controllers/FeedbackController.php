@@ -68,17 +68,29 @@ class FeedbackController extends Controller
     protected function changeFeedbackStatus(Request $request)
     {
   
+        if ($request->status < 0) {
+            $this->deleteFeedback($request->obj);
+            return response(['obj'=>$request->obj, 'delete'=>true],200);
+        };
         Feedback::whereIn('id',$request->obj)->update(['status'=>$request->status]);  
         return response(['obj' =>Feedback::with('statustitle:id,code,status_title')
                         ->whereIn('id',$request->obj)->get()],'200');
 
     } 
 
+    private function deleteFeedback($obj) 
+    {
+        Feedback::whereIn('id',$obj)->delete();
+        
+    }
+
     protected function getById(Request $request)
     {
 
         $feedback =  Feedback::where('id',$request->id)->with('statustitle:id,code,status_title','answer')->first();
-        $feedback->status = 1;
+        if ($feedback->status === 0 ) {
+            $feedback->status = 1;
+        }
         $feedback->save();
         $feedback->refresh();
         return $feedback;

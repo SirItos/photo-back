@@ -53,6 +53,10 @@ class UserController extends Controller
  
     }  
    
+
+
+
+
     /**
      * Set user pin for auth
      */
@@ -92,7 +96,7 @@ class UserController extends Controller
     protected function getUserParams(Request $request)
     {
         $id = $request->id ? $request->id : Auth::id();
-        $user = Models\User::with('roles','userDetails','resource','resource.images','statustitle')->where('id',$id)->first();
+        $user = Models\User::with('roles','userDetails','resource','resource.images','statustitle','notification')->where('id',$id)->first();
         $result = [];
         forEach($request->params as $param) {
             $result[$param] = $user[$param];
@@ -137,6 +141,20 @@ class UserController extends Controller
                         ->orWhere('phone','LIKE','%'.$request->search.'%');
                         // ->orWhere('created_at','LIKE','%'.$request->search.'%')
                 }
+
+               
+        if (isset($request->filter)) {
+            if( array_key_exists ('role', (array)$request->filter)) {
+                $query->whereHas('roles',function($query) use ($request) {
+                    $query->whereIn('id',$request->filter['role']);
+                });
+            }
+            if( array_key_exists ('status', (array)$request->filter)) {
+                $query->whereHas('statustitle',function($query) use ($request) {
+                    $query->whereIn('code',$request->filter['status']);
+                });
+            }
+        }
         return $query->paginate($request->paginate,['*'],'page',$request->page);
     }
 
@@ -193,6 +211,24 @@ class UserController extends Controller
         );
         $detail = Models\UserDetails::updateOrCreate(['user_id'=>$user->id],$details);
 
+    }
+
+    protected function rememberPassword(Request $request) 
+    {
+        $user = Models\User::where('phone', $request->phone)->first();
+        if ($user === null) {
+            return response('Пользователя с таким номером не зарегестрирован',403);
+        }
+        return response([
+            'user_id'=>$user->id,
+            'code'=>$request->no_sms ? null : $this->sms->createCode($user->id)
+        ]);
+                
+    }
+
+    protected function sawNotification(Request $request) 
+    {
+        Models\Notifications::where('id',$request->id)->delete();
     }
     
  

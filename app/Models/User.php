@@ -78,9 +78,14 @@ class User extends Authenticatable
         return $this->where($data['type'],$data['needle'])->first();
     }
 
-     public function statustitle() 
+    public function statustitle() 
     {
         return $this->belongsTo(StatusCode::class,'status','code');
+    }
+
+    public function notification()
+    {
+        return $this->hasMany(Notifications::class);
     }
 
 }

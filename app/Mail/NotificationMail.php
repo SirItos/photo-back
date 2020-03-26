@@ -7,10 +7,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class AnswerMail extends Mailable
+class NotificationMail extends Mailable
 {
     use Queueable, SerializesModels;
-
     public $data;
     /**
      * Create a new message instance.
@@ -29,8 +28,8 @@ class AnswerMail extends Mailable
      */
     public function build()
     {
-        return $this->from('info.bazabab@gmail.com')
-                    ->subject($this->data->title)
-                    ->view('mail.answer');
-    }   
+          return $this->from('info.bazabab@gmail.com')
+                      ->subject($this->data->title)
+                      ->view('mail.notification');
+    }
 }
