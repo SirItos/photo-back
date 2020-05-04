@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ResourceIamge;
+use App\Models\Resource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -23,12 +24,18 @@ class ResourceIamgeController extends Controller
       $files = $request->file('files'); 
       $response = [];
       foreach($request->file('files') as $key=>$file) {
+          
           $paths = $this->saveImg($file,$key, Auth::id());
+          
           $img = new ResourceIamge();
           $img->resource_id = Auth::user()->resource->id;
-          $img->url =  $paths['url'];
-          $img->path = $paths['path'];
+          $img->url =  $paths['urls'];
+          $img->path = $paths['paths'];
           $img->save();
+          
+      }
+      if (Auth::user()->resource->status === 3) {
+        Resource::where('id',Auth::user()->resource->id)->update(['status'=>0]);
       }
       return response('saved',200);
     }
@@ -46,19 +53,28 @@ class ResourceIamgeController extends Controller
     private function saveImg($file,$key,$userId) 
     {
       $path='uploads/' . $userId. '/';
-      $file_path=$path . time() . '-' . $key . '.jpg';
-
+      $file_path_resized=$path . time() . '-' . $key . '-320.jpg';
+      $file_path =$path . time() . '-' . $key . '.jpg'; 
       Image::configure(array('driver' => 'gd'));
       $image = Image::make($file);
-      
-      $image->resize(350,null, function ($constraint) {
+      $origin = Image::make($file)->orientate()->encode('jpg');
+      $resized = $image->resize(350,null, function ($constraint) {
           $constraint->aspectRatio();
       })
       ->orientate()
       ->encode('jpg');
-      // $image->stripImage();
-      $path=\Storage::disk('public')->put( $file_path, (string) $image );
+      $path_origin=\Storage::disk('public')->put( $file_path, (string) $origin );
+      $path_resized=\Storage::disk('public')->put( $file_path_resized, (string) $resized );
+    
 
-      return ['url' => \Storage::disk('public')->url($file_path), 'path'=> $file_path];
+      return ['urls' =>[
+        'origin' => \Storage::disk('public')->url($file_path),
+        '320' => \Storage::disk('public')->url($file_path_resized)
+      ], 'paths'=> [
+        'file_path'=>$file_path,
+        'file_path_320'=>$file_path_resized
+        ]
+      ];
+
     }
 }

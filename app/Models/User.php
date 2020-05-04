@@ -65,7 +65,7 @@ class User extends Authenticatable
     
     public function resource()
     {
-        return $this->hasOne(Resource::class);
+        return $this->hasOne(Resource::class)->withTrashed();
     }
     
     public function favorite()

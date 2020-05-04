@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class ExtendRoleTable extends Migration
+class CreateOauthPersonalAccessClientsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,11 @@ class ExtendRoleTable extends Migration
      */
     public function up()
     {
-         Schema::table('roles', function (Blueprint $table) {
-           
-           $table->string('name_ru')->after('name');
-       });
-     
+        Schema::create('oauth_personal_access_clients', function (Blueprint $table) {
+            $table->increments('id');
+            $table->unsignedInteger('client_id')->index();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -27,8 +27,6 @@ class ExtendRoleTable extends Migration
      */
     public function down()
     {
-         Schema::table('roles', function (Blueprint $table) {
-            $table->dropColumn(['name_ru']);
-        });
+        Schema::dropIfExists('oauth_personal_access_clients');
     }
 }

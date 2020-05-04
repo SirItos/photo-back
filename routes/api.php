@@ -53,6 +53,7 @@ Route::middleware('auth:api')->group(function () {
   Route::post('feedback-auth','FeedbackController@setFeedbackAuth')->middleware('reCaptcha');
   Route::get('role-list', 'RoleController@all');
   Route::post('saw-notification', 'UserController@sawNotification');
+  Route::post('restore-resources', 'ResourceController@restore');
   /**
    * Route fors provider
    */
@@ -81,6 +82,7 @@ Route::middleware('auth:api')->group(function () {
   Route::group(['middleware'=>['role:admin|manager']], function() {
     Route::get('get-counter','CountController@getCount');
     Route::post('/admin/resources', 'ResourceController@getAll');
+    
     Route::post('/admin/resources/status','ResourceController@changeResourceStatus');
 
     Route::post('/admin/feedback','FeedbackController@getFeedback');
@@ -91,11 +93,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/admin/user','UserController@getAll');
     Route::post('/admin/user/status','UserController@changeUserStatus');
     Route::post('/admin/user/edit','UserController@editUserAdmin');
-
-
-    Route::group(['middleware'=>['role:admin']], function() {
-      Route::post('/admin/user/create','UserController@createUserAdmin');
-    });
+    Route::post('/admin/user/create','UserController@createUserAdmin');
   });
 
   

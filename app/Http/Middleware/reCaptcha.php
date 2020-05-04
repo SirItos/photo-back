@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use GuzzleHttp\Client;  
+use Illuminate\Http\Response;
 
 class reCaptcha
 {
@@ -16,6 +17,7 @@ class reCaptcha
      */
     public function handle($request, Closure $next)
     {
+    
         if (!env('RECAPTCHA_ENABLED')) {
             return $next($request);
         }

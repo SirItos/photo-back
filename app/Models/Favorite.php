@@ -10,7 +10,7 @@ class Favorite extends Model
         'user_id','resource_id'
     ];  
 
-    protected $appends = ['img'];
+    protected $appends = ['img','name'];
 
     public function getImgAttribute() 
     {
@@ -27,6 +27,12 @@ class Favorite extends Model
     {
         return $this->belongsTo(Resource::class);
         
+    }
+
+    public function getNameAttribute()
+    {
+        $name = $this->resource()->with('user.userDetails')->first();
+        return $name->user->userDetails->name;
     }
 
 }

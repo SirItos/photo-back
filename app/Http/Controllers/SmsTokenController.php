@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
+use GuzzleHttp\Client;  
 
 class SmsTokenController extends Controller
 {
@@ -27,6 +29,8 @@ class SmsTokenController extends Controller
         $code = Models\SmsToken::create([
             'user_id'=>$userId
         ]);
+        $this->smsSend($code->code, Models\User::where('id',$userId)->first()->phone);
+        
         return $code->code;
     }
 
@@ -79,4 +83,23 @@ class SmsTokenController extends Controller
         return $this->auth->generateToken(['find_for_passport'=> $find_for_passport, 'password'=>$request->code]);
     }
 
+    private function smsSend($code,$phone) 
+    {
+
+       $smsHost = new Client();
+       if (env('SMS_URL_ENABLED')) {
+        $result = $smsHost->post(env('SMS_URL').'/Send/SendSms/',[
+            'form_params'=>[
+                    'sessionId'=>env('SMS_API_KEY'),
+                    'sourceAddress'=>'SMS Info',
+                    'destinationAddress'=>'7' . $phone,
+                    'data'=>'Ваш код для подтверждения номера телефона: '. $code,
+                    ]
+                ]
+        );
+       };
+       
+    }
+
+    
 }

@@ -87,7 +87,15 @@ class UserController extends Controller
             
             
         }
-        Models\UserDetails::updateOrCreate(['user_id'=>$id],$updParams);
+        $userDetails = Models\UserDetails::updateOrCreate(['user_id'=>$id],$updParams);
+
+        if (Auth::user()->hasRole('provider')) {
+            if (Auth::user()->resource) {
+                if (Auth::user()->resource->status === 3) {
+                    Models\Resource::where('id', Auth::user()->resource->id)->update(['status'=>0]);
+                }
+           }
+        }
 
         return response('Data is update. user id ' . $id,200);
     }
@@ -133,13 +141,18 @@ class UserController extends Controller
                         $query->where('name','LIKE','%'.$request->search.'%')
                         ->orWhere('name_ru','LIKE','%'.$request->search.'%');
                     })->orWhereHas('userDetails', function($query) use($request) {
-                        $query->where('phone','LIKE','%'.$request->search.'%');
+                        $query->where('phone','LIKE','%'.$request->search.'%')
+                              ->orWhere('email','LIKE','%'.$request->search.'%')
+                              ->orWhere('name','LIKE','%'.$request->search.'%');
                     })->orWhereHas('statustitle',function($query) use ($request) {
                         $query->where('status_title','LIKE','%'.$request->search.'%');
                     })->orWhere('id','LIKE','%'.$request->search.'%')   
                         ->orWhere('login','LIKE','%'.$request->search.'%')
                         ->orWhere('phone','LIKE','%'.$request->search.'%');
-                        // ->orWhere('created_at','LIKE','%'.$request->search.'%')
+                        // ->orWhere('created_at','RLIKE','^' . $request->search . '-[[:digit:]]{2}-[[:digit:]]{2}')
+                        // ->orWhere('created_at','RLIKE','^[[:digit:]]{4}-' . $request->search .'-[[:digit:]]{2}');
+                        // |  | ^[[:digit:]]{4}-[[:digit:]]{2}-'. $request->search );
+                        
                 }
 
                
@@ -198,7 +211,8 @@ class UserController extends Controller
     protected function createUserAdmin(Request $request)
     {
         $user = new Models\User();
-        $user->login = $request->login;
+        $attrName = Auth::user()->hasRole(['admin','manager']) ? 'login' : 'phone';
+        $user[$attrName] = $request->login;
         $user->password = $request->password;
         $user->status = 5;
         $user->save();
@@ -217,7 +231,7 @@ class UserController extends Controller
     {
         $user = Models\User::where('phone', $request->phone)->first();
         if ($user === null) {
-            return response('Пользователя с таким номером не зарегестрирован',403);
+            return response('Пользователь с таким номером телефона не зарегестрирован',403);
         }
         return response([
             'user_id'=>$user->id,

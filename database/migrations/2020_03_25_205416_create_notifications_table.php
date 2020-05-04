@@ -17,6 +17,7 @@ class CreateNotificationsTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->integer('status')->default(5);
             $table->string('title')->default('Анкета активирована!');
             $table->longText('description')->nullable();
             $table->softDeletes();

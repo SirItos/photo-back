@@ -11,4 +11,9 @@ class ResourceIamge extends Model
         'resource_id', 'path'
     ];
    
+
+    protected $casts = [
+        'path' => 'array',
+        'url' => 'array'
+    ];
 }

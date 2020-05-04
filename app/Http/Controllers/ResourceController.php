@@ -21,8 +21,11 @@ class ResourceController extends Controller
         forEach($request->params as $param) {
                 $updParams[$param['field']] = $param['value'];      
         }
+        
         $resource = Resource::updateOrCreate(['user_id'=>$id],$updParams);
-
+        if ($resource->status === 3 || $resource->status === 1) {
+            $resource->update(['status'=>0]);
+        }
         return response(['message'=>'Data is update.', 'id' => $resource->id],200);
     }
 
@@ -34,7 +37,7 @@ class ResourceController extends Controller
      */
     protected function getResourceParams(Request $request)
     {
-        $query =  Resource::where('id',$request->id);
+        $query =  Resource::where('id',$request->id)->withTrashed();
         
         if ($request->all) {
             $result =  $query->with('user:id,phone','user.userDetails','favorite:id,resource_id','images:id,resource_id,url','statustitle:id,code,status_title')->first();
@@ -150,14 +153,23 @@ class ResourceController extends Controller
     {
         $resource = Resource::where('id',$request->id)->first();
         
-        UserDetails::where('user_id',$resource->user_id)->update(['age_range'=>null, 'display_phone'=>null, 'name'=>null, 'email'=>null]);
+        // UserDetails::where('user_id',$resource->user_id)->update(['age_range'=>null, 'display_phone'=>null, 'name'=>null, 'email'=>null]);
+        $resource->update(['status'=>7]);
         $resource->delete();
         return response(['deleted' => $request->id],200);
     }
 
     protected function restore(Request $request) 
     {
-        Resource::where('id',$request->id)->restore();
+        
+        
+        Resource::whereIn('id',$request->obj)->restore();
+        Resource::whereIn('id',$request->obj)->update(
+            ['activated'=> Auth::user()->hasRole(['admin','manager']) ? 1 : 0, 
+            'status'=> Auth::user()->hasRole(['admin','manager']) ? 2 : 0]);
+       
+        return  response(['obj' =>Resource::with('statustitle:id,code,status_title')
+                        ->whereIn('id',$request->obj)->get()],'200');
     }
 
 
@@ -171,15 +183,28 @@ class ResourceController extends Controller
     protected function getAll(Request $request) 
     {   
         
-        $query = Resource::with('statustitle:id,code,status_title')->orderBy($request->sortBy ? $request->sortBy : 'id',
+        $query = Resource::with('statustitle:id,code,status_title','user.userDetails:id,user_id,name')
+                                ->withTrashed()
+                                ->orderBy($request->sortBy ? $request->sortBy : 'id',
                                    $request->sortDesc ? $request->sortDesc : 'desc' );
         if ($request->search) 
         {
              $query->whereHas('statustitle',function($query) use ($request)  {
                 $query->where('status_title','LIKE','%'.$request->search.'%');
              })->orWhere('id','LIKE','%'.$request->search.'%')
-                   ->orWhere('title','LIKE','%'.$request->search.'%');
+            //    ->orWhere('title','LIKE','%'.$request->search.'%')
+               ->orWhereHas('user.userDetails', function($query) use ($request) {
+                    $query->where('name','LIKE','%'.$request->search.'%');
+               });
 //                   ->orWhere('created_at','LIKE','%'.$request->search.'%');
+        }
+
+          if (isset($request->filter)) {
+            if( array_key_exists ('status', (array)$request->filter)) {
+                $query->whereHas('statustitle',function($query) use ($request) {
+                    $query->whereIn('code',$request->filter['status']);
+                });
+            }
         }
         
        return $query->paginate($request->paginate,['*'],'page',$request->page);
@@ -197,7 +222,7 @@ class ResourceController extends Controller
             $updateParams['activated'] = 0;
             $this->saveSendUserNotification($request->obj, $request->status, $request->reason);
         }
-
+        
         Resource::whereIn('id',$request->obj)->update($updateParams);  
         return response(['obj' =>Resource::with('statustitle:id,code,status_title')
                         ->whereIn('id',$request->obj)->get()],'200');
@@ -233,6 +258,7 @@ class ResourceController extends Controller
                     if ($user->status === 0 || $user->status === 1 || $user->status === 2) {
                         Notifications::create([
                             'title'=>$title,
+                            'status'=>$status,
                             'user_id' => $user->user->id,
                             'description'=>$reason ? $reason : null
                         ]);

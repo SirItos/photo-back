@@ -9,7 +9,19 @@ class Resource extends Model
 {
     use SoftDeletes;
     protected $fillable = [
-        'user_id','address','title','long','lat','description','resource_type','cost','min_cost','max_cost', 'online','activated'
+        'user_id',
+        'address',
+        'title',
+        'long',
+        'lat',
+        'description',
+        'resource_type',
+        'cost',
+        'min_cost',
+        'max_cost',
+        'online',
+        'activated',
+        'status'
     ];
 
     public function user()

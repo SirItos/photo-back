@@ -29,8 +29,8 @@ class FeedbackController extends Controller
                 $userDetails->save();
             }
         }
-        
-        Feedback::create(['user_id'=>Auth::id(),'email'=>$request->email, 'description'=>$request->description]);
+        $theme = $request->theme ? $request->theme : 'Без темы';
+        Feedback::create(['user_id'=>Auth::id(),'email'=>$request->email, 'description'=>$request->description,'theme'=>$theme]);
     }
 
     /**
@@ -41,8 +41,8 @@ class FeedbackController extends Controller
 
     protected function setFeedback(Request $request)
     {
-        
-        Feedback::create(['email'=>$request->email, 'description'=>$request->description]);
+        $theme = $request->theme ? $request->theme : 'Без темы';
+        Feedback::create(['email'=>$request->email, 'description'=>$request->description, 'theme'=>$theme]);
         
         return response(['message' => 'сообщение отправлено'],200);
     }

@@ -95,6 +95,10 @@ class AuthController extends Controller
         
         $http = new Client;
         $oAuth_client = Models\Client::getClient('custom_client');
+        
+        if (!$oAuth_client) {
+            return response('Что-то пошло не так =(',500);
+        }
         $response = $http->post(env('APP_URL') . '/oauth/token', [
             'form_params' => [
                 'grant_type' => 'password',

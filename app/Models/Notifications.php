@@ -9,7 +9,7 @@ class Notifications extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['user_id','description','title'];
+    protected $fillable = ['user_id','description','title','status'];
 
     public function user()
     {
