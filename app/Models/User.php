@@ -51,41 +51,40 @@ class User extends Authenticatable
      */
     public function setPasswordAttribute($value)
     {
-       $this->attributes['password'] = bcrypt($value);
-    }     
+        $this->attributes['password'] = bcrypt($value);
+    }
     public function smsTokens()
     {
         return $this->hasMany(SmsToken::class);
     }
 
-    public function userDetails() 
+    public function userDetails()
     {
         return $this->hasOne(UserDetails::class);
     }
-    
+
     public function resource()
     {
         return $this->hasOne(Resource::class)->withTrashed();
     }
-    
+
     public function favorite()
     {
         return $this->hasMany(Favorite::class);
     }
 
-    public function findForPassport(array $data) 
+    public function findForPassport(array $data)
     {
-        return $this->where($data['type'],$data['needle'])->first();
+        return $this->where($data['type'], $data['needle'])->first();
     }
 
-    public function statustitle() 
+    public function statustitle()
     {
-        return $this->belongsTo(StatusCode::class,'status','code');
+        return $this->belongsTo(StatusCode::class, 'status', 'code');
     }
 
     public function notification()
     {
         return $this->hasMany(Notifications::class);
     }
-
 }

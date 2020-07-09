@@ -24,8 +24,8 @@ class CreateResourcesTable extends Migration
             $table->longText('description')->nullable();
             $table->boolean('resource_type')->default(0);
            
-            $table->integer('min_cost')->default(0);
-            $table->integer('max_cost')->default(2);
+            // $table->integer('min_cost')->default(0);
+            // $table->integer('max_cost')->default(2);
             $table->boolean('activated')->default(0);
             $table->timestamps();
         });

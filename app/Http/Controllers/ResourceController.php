@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Resource;
+use App\Models\ResourcePricerange;
 use App\Models\Notifications;
 use App\Models\UserDetails;
 use App\Models\Favorite;
@@ -18,13 +19,21 @@ class ResourceController extends Controller
     {
         $id = Auth::id();
         $updParams = [];
+        $priceRange;
         forEach($request->params as $param) {
+                if ($param['field'] === 'priceRange') {
+                    $priceRange = $param['value'];
+                    continue;
+                }
                 $updParams[$param['field']] = $param['value'];      
         }
         
         $resource = Resource::updateOrCreate(['user_id'=>$id],$updParams);
         if ($resource->status === 3 || $resource->status === 1) {
             $resource->update(['status'=>0]);
+        }
+        if (isset($priceRange)) {
+            $this->fillPriceRange($priceRange, $resource->id);
         }
         return response(['message'=>'Data is update.', 'id' => $resource->id],200);
     }
@@ -36,18 +45,26 @@ class ResourceController extends Controller
      * @return array
      */
     protected function getResourceParams(Request $request)
-    {
-        $query =  Resource::where('id',$request->id)->withTrashed();
-        
+    {                                                                                                                                                                                                       
+        $query =  Resource::where('id',$request->id)
+                ->with('priceRange:id,resource_id,min_cost,max_cost')
+                ->withTrashed();
+      
         if ($request->all) {
-            $result =  $query->with('user:id,phone','user.userDetails','favorite:id,resource_id','images:id,resource_id,url','statustitle:id,code,status_title')->first();
+            $result =  $query->with('user:id,phone',
+                                    'user.userDetails',
+                                    'favorite:id,resource_id',
+                                    'images:id,resource_id,url',
+                                    'statustitle:id,code,status_title',
+                                    'priceRange:id,resource_id,min_cost,max_cost')
+                                    ->first();
             if ($result->status === 0 && $request->admin) {
                 $result->status = 1;
                 $result->save();
             }
             return $result;
         }
-        return $query->first($request->params);
+        return $query->first();
      
     }
 
@@ -61,16 +78,14 @@ class ResourceController extends Controller
      */
     protected function pointsInBound(Request $request)
     {
-        $query = Resource::where([['activated',1]])
+        $query = Resource::with('priceRange')->where([['activated',1]])
                          ->whereHas('user.userDetails', function($query) {
                              return $query->where('online',1);
                          })->whereHas('user', function($query){
                              return $query->where('status',5);
                          })->whereHas('user.roles', function($query){
                              return $query->where('name','provider');
-                         });
-        
-     
+                         });     
         
         if ($request->filters) {
             $query = $this->setFilters($query,$request->filters);
@@ -139,9 +154,24 @@ class ResourceController extends Controller
         });
   
         // Price range filter start
-
-        $query->where('min_cost','>=', $filters['price'][0]);
-        $query->where('max_cost','<=', $filters['price'][1]);
+        foreach($filters['price'] as $key => $price) {
+           
+            if ($key === 0) {
+                $query->whereHas('priceRange', function($query) use($price) {
+                  return $query->where([['min_cost','>=', $price['min']],
+                                       ['max_cost','<=', $price['max']]]
+                  );
+                });
+            } else {
+               $query->orWhereHas('priceRange', function($query) use($price) {
+                  return $query->where([['min_cost','>=', $price['min']],
+                                       ['max_cost','<=', $price['max']]]
+                  );
+                });
+            }
+        }
+        // $query->where('min_cost','>=', $filters['price'][0]);
+        // $query->where('max_cost','<=', $filters['price'][1]);
 
         // Price range filter end
 
@@ -270,6 +300,25 @@ class ResourceController extends Controller
             }
         }
          
+    }
+
+    private function fillPriceRange($value, $resource_id) 
+    {
+        ResourcePricerange::where('resource_id', $resource_id)->delete();
+        if (gettype($value) === 'string') {
+             ResourcePricerange::create(['resource_id'=>$resource_id ,
+             'min_cost'=>$value,
+              'max_cost'=>$value]
+            );
+            return;
+        }
+        forEach($value as $item) {
+            ResourcePricerange::create(['resource_id'=>$resource_id ,
+             'min_cost'=>$item['min_cost'],
+              'max_cost'=>$item['max_cost']]
+            );
+        }
+        
     }
 }
  

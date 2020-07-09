@@ -43,4 +43,9 @@ class Resource extends Model
     {
         return $this->belongsTo(StatusCode::class,'status','code');
     }
+
+    public function priceRange() 
+    {
+        return $this->hasMany(ResourcePricerange::class,'resource_id','id');
+    }
 }
