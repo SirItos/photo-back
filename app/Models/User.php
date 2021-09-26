@@ -101,10 +101,7 @@ class User extends Authenticatable
 
     public function findForPassport(array $data)
     {
-        if ($data['type']==='phone') {
-            $needle = substrPhone($data['needle']);
-            $this->where($data['type'],'LIKE', '%' . $data['needle'])->first();
-        }
+      
         
         return $this->where($data['type'], $data['needle'])->first();
     }
