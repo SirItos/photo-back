@@ -33,6 +33,32 @@ class User extends Authenticatable
         'phone_verificated'
     ];
 
+
+    private function substrPhone(string $phone)
+    {
+       $firstSymbol = substr($phone,0,1);
+        
+       return  $firstSymbol === '+' ? substr($phone,2) : substr($phone,1);
+    }
+
+    public function findOrCreateFromPhone(string $phone) 
+    {
+       
+        $needlePhone = $this->substrPhone($phone);
+
+        if (! is_null($instance = $this->where('phone','LIKE','%'. $needlePhone)->first())) {
+            return $instance;
+        }
+
+        return tap($this->newModelInstance(["phone"=>$phone]), function ($instance) {
+            $instance->save();
+        });
+
+      
+        
+
+    }
+
     /**
      * Change user role
      * 
@@ -75,6 +101,11 @@ class User extends Authenticatable
 
     public function findForPassport(array $data)
     {
+        if ($data['type']==='phone') {
+            $needle = substrPhone($data['needle']);
+            $this->where($data['type'],'LIKE', '%' . $data['needle'])->first();
+        }
+        
         return $this->where($data['type'], $data['needle'])->first();
     }
 

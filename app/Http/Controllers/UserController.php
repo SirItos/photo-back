@@ -34,9 +34,10 @@ class UserController extends Controller
      */
     protected function createUser(Request $request)
     {
-        $user = Models\User::firstOrCreate([
-            'phone' => $request->phone
-        ]);
+        $user =  new Models\User();
+        
+        $user =  $user->findOrCreateFromPhone($request->phone); 
+        
         if (!$user->hasAnyRole(['admin', 'manager', 'customer', 'provider'])) {
 
             $user->assignRole('customer');

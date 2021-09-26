@@ -1,5 +1,4 @@
 <?php
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -11,17 +10,3 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
-
-// Route::get('/demo', function () {
-
-//     return new App\Mail\NotificationMail((object) array(
-//         'title' => "тест",
-//         'result' => "тест ответ",
-//         "good" => false,
-//         "reason" => "test"
-//     ));
-// });

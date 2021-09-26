@@ -1,7 +1,5 @@
 <?php
-
 use Illuminate\Http\Request;
-
 
 Route::post('test-sms', 'SmsTokenController@testSMS');
 
@@ -27,7 +25,6 @@ Route::get('alt-locate', 'GeocoderController@ipLocation');
 
 Route::post('reset-password', 'UserController@rememberPassword');
 
-
 // Route::post('execute-command',function(Request $request) {
 
 //   try{
@@ -45,9 +42,7 @@ Route::post('reset-password', 'UserController@rememberPassword');
  * апи для вызовва cmd команд на сервере (т.к. необходим php 7+, а через панель ISP доступен глобальный 5.3)
  */
 // 
-
 Route::middleware('auth:api')->group(function () {
-
   Route::post('set-pin', 'UserController@setPin');
   Route::post('user-params', 'UserController@getUserParams');
   Route::post('set-role', 'UserController@setRole');
@@ -68,7 +63,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('geosearch', 'GeocoderController@Geosearch');
     Route::post('delete-resource', 'ResourceController@softDelete');
   });
-
   /**
    * Routes for customer
    */
